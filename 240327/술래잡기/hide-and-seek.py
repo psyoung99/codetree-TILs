@@ -5,6 +5,7 @@ rds={2:[(1, 0), (-1, 0)], 1:[(0, 1), (0, -1)]}
 rd_info=[]
 lose=[0]*m
 flag=1
+idx=0
 for _ in range(m):
     x, y, d=map(int, input().split())
     runner.append((x-1, y-1, 0)) #d=1->lr
@@ -16,9 +17,10 @@ for _ in range(h):
     trees.append((x-1, y-1))
 score=0
 inOut=[chaser]
-outIn=[[0, 0, (1, 0)]]
+outIn=[]
+#outIn=[[0, 0, (1, 0)]]
 def cMove_inout(chaser):
-    global inOut, flag
+    global inOut, flag, outIn
     nx, ny, nd=chaser
     dist=1
     cnt=0
@@ -27,9 +29,9 @@ def cMove_inout(chaser):
     while True:
         for direction in range(dist):
             nx, ny=nx+ds[dn][0], ny+ds[dn][1]
-            if (nx, ny)==(-1, 0):
-                flag=-1
+            if (nx, ny)==(0, 0):
                 inOut.append((nx, ny, (1, 0)))
+                outIn.append((0, 0, (1, 0)))
                 cMove_outin()
                 return
             inOut.append([nx, ny, ds[dn]])
@@ -80,7 +82,7 @@ def rMove():
         xx=rx+rds[rd_info[i]][rd][0]
         yy=ry+rds[rd_info[i]][rd][1]
         if 0<=xx<n and 0<=yy<n:
-            if (xx, yy, cd)==chaser:
+            if xx==cx and yy==cy:
                 continue
             else:
                 runner[i]=(xx, yy, rd)
@@ -91,26 +93,35 @@ def rMove():
             if [xx, yy, cd]!=chaser:
                 runner[i]=(xx, yy, rd)
 def cMove():
-    global chaser
-    if flag==1:
-        route=inOut
-    else:
+    global chaser, route, idx
+    if chaser[0]==0 and chaser[1]==0:
+        idx=1
+      #  print("OOOOOO")
         route=outIn
-    for idx in range(len(route)):
-        if route[idx]==chaser:
-            xx, yy, cd=route[(idx+1)%len(route)]
-            chaser=[xx, yy, cd]
-            break
+    elif chaser[0]==n//2 and chaser[1]==n//2:
+        idx=1
+      #  print("IIIIII")
+        route=inOut
+    chaser=[route[idx][0], route[idx][1], route[idx][2]]
+    idx+=1
+route=inOut
 for turn in range(1, k+1):
     rMove()
     cMove()
+    #print('r',runner)
+    rs=[]
+    livenum=0
+    for i in range(m):
+        if lose[i]==0:
+            rs.append(runner[i])
+            livenum+=1
     cx, cy, cd=chaser
+    num=0
     for i in range(3):
         xx=cx+cd[0]*i
         yy=cy+cd[1]*i
         if not (0<=xx<n and 0<=yy<n):
             continue
-        num=0
         for j in range(m):
             if lose[j]==1:
                 continue
@@ -119,5 +130,5 @@ for turn in range(1, k+1):
                     continue
                 lose[j]=1
                 num+=1
-        score+=turn*num
+    score+=turn*num
 print(score)
