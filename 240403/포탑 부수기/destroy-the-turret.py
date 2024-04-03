@@ -20,44 +20,30 @@ def decide():
 def laser(at, st):
     dx=[0, 1, 0, -1]
     dy=[1, 0, -1, 0]
-    r_dx=[-1, 0, 1, 0]
-    r_dy=[0, -1, 0, 1]
     dq=deque()
-    dq.append((at[0], at[1]))
+    dq.append((at[0], at[1], []))
     visit=[[0]*m for _ in range(n)]
     visit[at[0]][at[1]]=1
     while dq:
-        nx, ny=dq.popleft()
+        nx, ny, route=dq.popleft()
         if nx==st[0] and ny==st[1]:
-            break
+            for i, j in route:
+                if (i, j)==st:
+                    continue
+                board[i][j] -= board[at[0]][at[1]] // 2
+                related[i][j] = 1
+            board[st[0]][st[1]]-=board[at[0]][at[1]]
+            return True
         for i in range(4):
             xx, yy=(nx+dx[i])%n, (ny+dy[i])%m
             if board[xx][yy]<=0:
                 continue
             if visit[xx][yy]==0:
-                dq.append((xx, yy))
+                tmp_route=route[:]
+                tmp_route.append((xx, yy))
+                dq.append((xx, yy, tmp_route))
                 visit[xx][yy]=visit[nx][ny]+1
-    if visit[st[0]][st[1]]>1:
-        route=[]
-        ax, ay=st[0], st[1]
-        for _ in range(visit[st[0]][st[1]]-1):
-            amin=5001
-            for i in range(4):
-                xx, yy = (ax + r_dx[i]) % n, (ay + r_dy[i]) % m
-                if 0<visit[xx][yy]<amin:
-                    amin=visit[xx][yy]
-                    x, y=xx, yy
-            route.append((x, y))
-            ax, ay=x, y
-        for i, j in route:
-            if (i, j)==at:
-                continue
-            board[i][j]-=board[at[0]][at[1]]//2
-            related[i][j]=1
-        board[st[0]][st[1]]-=board[at[0]][at[1]]
-        return True
-    else:
-        return False
+    return False
 def bomb(at, st):
     dx=[0, -1, -1, -1, 0, 1, 1, 1]
     dy=[-1, -1, 0, 1, 1, 1, 0, -1]
